@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Group Chat</title>
+    <style>
+        * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styles */
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon {
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: #ea580c;
+  color: white;
+}
+
+.header-text h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.125rem;
+}
+
+.header-text p {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.connection-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  transition: background-color 0.3s ease;
+}
+
+.connection-indicator.connected {
+  background: #10b981;
+}
+
+.connection-indicator.disconnected {
+  background: #ef4444;
+}
+
+/* Messages Container */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #fefefe;
+}
+
+.welcome-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #6b7280;
+}
+
+.welcome-icon {
+  padding: 1rem;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.welcome-message h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-message p {
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Message Styles */
+.message-wrapper {
+  display: flex;
+  width: 100%;
+  margin-bottom: 1rem;
+  animation: slideIn 0.2s ease-out;
+}
+
+.message-wrapper.own-message {
+  justify-content: flex-end;
+}
+
+.message-wrapper.other-message {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.own-bubble {
+  background: #ea580c;
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.other-bubble {
+  background: white;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.message-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  margin-bottom: 0.5rem;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.own-bubble .message-time {
+  text-align: right;
+}
+
+.other-bubble .message-time {
+  text-align: left;
+}
+
+/* Input Area */
+.input-area {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.input-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#message-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+#message-input:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+#message-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.send-button {
+  padding: 0.75rem;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-button:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.send-button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.connection-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Icon Styles */
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.header-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.welcome-icon .icon {
+  width: 32px;
+  height: 32px;
+}
+
+.send-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chat-container {
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+  }
+
+  .header-text h1 {
+    font-size: 1.125rem;
+  }
+
+  .welcome-message p {
+    max-width: 300px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Scrollbar Styling */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>Group Chat</h1>
+                    <p id="connection-status">Connecting...</p>
+                </div>
+            </div>
+            <div class="connection-indicator" id="connection-dot"></div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="messages-container" id="messages-container">
+            <div class="welcome-message" id="welcome-message">
+                <div class="welcome-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <h3>Welcome to the chat!</h3>
+                <p>Start a conversation by sending your first message. No usernames needed - just pure conversation.</p>
+            </div>
+            <div id="messages"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <form id="form" class="input-form">
+                <input type="text" name="message" id="message-input" placeholder="Type your message..." disabled>
+                <button type="submit" class="send-button" id="send-button" disabled>
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m22 2-7 20-4-9-9-4Z"/>
+                        <path d="M22 2 11 13"/>
+                    </svg>
+                </button>
+            </form>
+            <p class="connection-error" id="connection-error" style="display: none;">
+                Connection lost. Trying to reconnect...
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+        let url = `${protocol}//${window.location.host}/ws/socket-server/`
+        const chatSocket = new WebSocket(url)
+        let isConnected = false
+        let messageCount = 0
+        let sentMessages = new Set()
+
+        // DOM elements
+        const messagesContainer = document.getElementById('messages')
+        const messagesDiv = document.getElementById('messages')
+        const welcomeMessage = document.getElementById('welcome-message')
+        const connectionStatus = document.getElementById('connection-status')
+        const connectionDot = document.getElementById('connection-dot')
+        const messageInput = document.getElementById('message-input')
+        const sendButton = document.getElementById('send-button')
+        const connectionError = document.getElementById('connection-error')
+        const form = document.getElementById('form')
+
+        // WebSocket event handlers
+        chatSocket.onopen = function() {
+            isConnected = true
+            connectionStatus.textContent = 'Connected'
+            connectionDot.classList.add('connected')
+            connectionDot.classList.remove('disconnected')
+            messageInput.disabled = false
+            sendButton.disabled = false
+            connectionError.style.display = 'none'
+            console.log('Connected to chat')
+        }
+
+        chatSocket.onmessage = function(e) {
+            let data = JSON.parse(e.data)
+            console.log('Data: ', data)
+            
+            if(data.type === 'chat') {
+                const messageKey = `${data.message}_${Date.now()}`
+                if (sentMessages.has(data.message)) {
+                    // Remove from sent messages set and don't display
+                    sentMessages.delete(data.message)
+                    return
+                }
+                
+                // Hide welcome message when first message arrives
+                if (messageCount === 0) {
+                    welcomeMessage.style.display = 'none'
+                }
+                
+                addMessage(data.message, false)
+                messageCount++
+            }
+        }
+
+        chatSocket.onclose = function() {
+            isConnected = false
+            connectionStatus.textContent = 'Connecting...'
+            connectionDot.classList.add('disconnected')
+            connectionDot.classList.remove('connected')
+            messageInput.disabled = true
+            sendButton.disabled = true
+            connectionError.style.display = 'block'
+            console.log('Disconnected from chat')
+        }
+
+        chatSocket.onerror = function(error) {
+            console.error('WebSocket error:', error)
+            isConnected = false
+            connectionStatus.textContent = 'Connection Error'
+            connectionDot.classList.add('disconnected')
+            connectionDot.classList.remove('connected')
+            messageInput.disabled = true
+            sendButton.disabled = true
+            connectionError.style.display = 'block'
+        }
+
+        // Add message to chat
+        function addMessage(message, isOwn = false) {
+            const messageDiv = document.createElement('div')
+            messageDiv.className = `message-wrapper ${isOwn ? 'own-message' : 'other-message'}`
+            
+            const currentTime = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            })
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble ${isOwn ? 'own-bubble' : 'other-bubble'}">
+                    <p class="message-text">${message}</p>
+                    <p class="message-time">${currentTime}</p>
+                </div>
+            `
+            
+            messagesDiv.appendChild(messageDiv)
+            scrollToBottom()
+        }
+
+        // Scroll to bottom of messages
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight
+        }
+
+        // Form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault()
+            let message = e.target.message.value.trim()
+            
+            if (!message || !isConnected) return
+            
+            // Hide welcome message when sending first message
+            if (messageCount === 0) {
+                welcomeMessage.style.display = 'none'
+            }
+            
+            sentMessages.add(message)
+            
+            // Add own message immediately
+            addMessage(message, true)
+            messageCount++
+            
+            // Send through WebSocket
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }))
+            
+            form.reset()
+        })
+
+        // Enable send button only when there's text
+        messageInput.addEventListener('input', function() {
+            const hasText = this.value.trim().length > 0
+            sendButton.disabled = !hasText || !isConnected
+        })
+    </script>
+</body>
+</html>
